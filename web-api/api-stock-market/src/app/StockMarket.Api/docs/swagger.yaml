@@ -1,0 +1,265 @@
+basePath: /
+definitions:
+  Errors.ErrorBadRequest:
+    properties:
+      code:
+        description: |-
+          Error code.
+          example: 400
+        example: 400
+        type: integer
+      error:
+        description: |-
+          Error description.
+          example: "Bad request"
+        example: Bad request
+        type: string
+      message:
+        description: |-
+          Error message.
+          example: "Invalid request, please verify your parameters."
+        example: Invalid request, please verify your parameters.
+        type: string
+    type: object
+  Errors.ErrorInternal:
+    properties:
+      code:
+        description: |-
+          Error code.
+          example: 500
+        example: 500
+        type: integer
+      error:
+        description: |-
+          Error description.
+          example: "Internal server error"
+        example: Internal server error
+        type: string
+      message:
+        description: |-
+          Error message.
+          example: "Internal server error, please try again later."
+        example: Internal server error, please try again later.
+        type: string
+    type: object
+  Errors.ErrorNotFound:
+    properties:
+      code:
+        description: |-
+          Error code.
+          example: 404
+        example: 404
+        type: integer
+      error:
+        description: |-
+          Error description.
+          example: "Not found"
+        example: Not found
+        type: string
+      message:
+        description: |-
+          Error message.
+          example: "Resource not found."
+        example: Resource not found.
+        type: string
+    type: object
+  Payload.StockAnalysisResponse:
+    properties:
+      comment:
+        description: 'Exemplo: "Exemplo: O ativo possui potencial de valorização apesar
+          do risco"'
+        example: 'Exemplo: O ativo possui potencial de valorização apesar do risco'
+        type: string
+      debt_to_equity:
+        description: 'Exemplo: 1.20'
+        example: 1.2
+        type: number
+      dividend_yield:
+        description: 'Exemplo: 2.15'
+        example: 2.15
+        type: number
+      market_cap:
+        description: 'Exemplo: 250000000000.00'
+        example: 250000000000
+        type: number
+      pb_ratio:
+        description: 'Exemplo: 3.45'
+        example: 3.45
+        type: number
+      pe_ratio:
+        description: 'Exemplo: 15.23'
+        example: 15.23
+        type: number
+      price:
+        description: 'Exemplo: 150.75'
+        example: 150.75
+        type: number
+      reason:
+        description: 'Exemplo: "Exemplo: Alta taxa de PE em comparação à média do
+          setor"'
+        example: 'Exemplo: Alta taxa de PE em comparação à média do setor'
+        type: string
+      recommendation:
+        description: 'Exemplo: "Exemplo: Comprar este ativo"'
+        example: 'Exemplo: Comprar este ativo'
+        type: string
+      score:
+        description: 'Exemplo: 85'
+        example: 85
+        type: integer
+      shouldInvest:
+        description: 'Exemplo: true'
+        example: true
+        type: boolean
+      ticker:
+        description: 'Exemplo: "AAPL"'
+        example: AAPL
+        type: string
+    type: object
+  Payload.StockResponse:
+    properties:
+      action:
+        example: BUY
+        type: string
+      brokerage:
+        example: NASDAQ
+        type: string
+      company:
+        example: Apple Inc.
+        type: string
+      rating_from:
+        example: "4.5"
+        type: string
+      rating_to:
+        example: "5.0"
+        type: string
+      target_from:
+        example: $69.00
+        type: string
+      target_to:
+        example: $74.00
+        type: string
+      ticker:
+        example: AAPL
+        type: string
+      time:
+        example: "2020-01-01T00:00:00Z"
+        type: string
+    required:
+    - ticker
+    type: object
+host: localhost:5000
+info:
+  contact: {}
+  description: Stock market API.
+  title: Stock Market API
+  version: "1.0"
+paths:
+  /analysis/{ticker}:
+    post:
+      consumes:
+      - application/json
+      description: Performs a stock analysis based on the provided requestData
+      parameters:
+      - description: Ticker stock symbol
+        in: path
+        name: ticker
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Payload.StockAnalysisResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Errors.ErrorBadRequest'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Errors.ErrorInternal'
+      summary: Stock Analysis
+      tags:
+      - StockAnalysis
+  /best-investments:
+    get:
+      consumes:
+      - application/json
+      description: This endpoint calls the service responsible for identifying the
+        best stocks for investment and returns the results in JSON.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            items:
+              $ref: '#/definitions/Payload.StockResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Errors.ErrorInternal'
+      tags:
+      - Stocks
+  /fetchstocks:
+    post:
+      responses: {}
+  /stockmarkets:
+    get:
+      consumes:
+      - application/json
+      description: Returns a paginated list of stock markets.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: items
+        type: integer
+      - default: "2024-03-05T15:04:05Z"
+        description: Date in format RFC3339
+        in: query
+        name: startDate
+        type: string
+      - default: "2025-03-05T15:04:05Z"
+        description: Date in format RFC3339
+        in: query
+        name: endDate
+        type: string
+      - default: Apple
+        description: Name of company
+        in: query
+        name: company
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of stock markets
+          schema:
+            items:
+              $ref: '#/definitions/Payload.StockResponse'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/Errors.ErrorBadRequest'
+        "404":
+          description: Stock markets not found
+          schema:
+            $ref: '#/definitions/Errors.ErrorNotFound'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Errors.ErrorInternal'
+      tags:
+      - StockMarket
+swagger: "2.0"
