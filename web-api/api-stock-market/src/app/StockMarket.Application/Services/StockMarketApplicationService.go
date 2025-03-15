@@ -3,7 +3,7 @@ package Services
 import (
 	models "api-stock-market/src/app/StockMarket.Domain/Models"
 	repo "api-stock-market/src/app/StockMarket.Infrastructure/Interfaces"
-	response "api-stock-market/src/app/StockMarket.Infrastructure/Repository/Response"
+	response "api-stock-market/src/app/StockMarket.Infrastructure/Repository/Http/Response"
 	"encoding/json"
 	"fmt"
 	"github.com/golang-migrate/migrate/v4"
@@ -14,18 +14,18 @@ import (
 )
 
 type StockMarketApplicationService struct {
-	StockMarketRepository repo.IStockMarketRepository
-	HttpRepository        repo.IHttpRepository
+	dbRepository               repo.ICockroachDbRepository
+	truoraStocksHttpRepository repo.ITruoraStocksHttpRepository
 }
 
 func NewStockMarketApplicationService(
-	stockRepo repo.IStockMarketRepository,
-	httpRepo repo.IHttpRepository,
+	stockRepo repo.ICockroachDbRepository,
+	httpRepo repo.ITruoraStocksHttpRepository,
 ) *StockMarketApplicationService {
 
 	return &StockMarketApplicationService{
-		StockMarketRepository: stockRepo,
-		HttpRepository:        httpRepo,
+		dbRepository:               stockRepo,
+		truoraStocksHttpRepository: httpRepo,
 	}
 }
 
@@ -33,7 +33,7 @@ func (s StockMarketApplicationService) GetStockMarketList(page int, limit *int,
 	startDate, endDate *time.Time,
 	companyName string) ([]*models.StockMarketModel, error) {
 
-	var stockMarketList, err = s.StockMarketRepository.GetList(page, limit, startDate, endDate, companyName)
+	var stockMarketList, err = s.dbRepository.GetStockList(page, limit, startDate, endDate, companyName)
 
 	if err != nil {
 		return stockMarketList, err
@@ -50,12 +50,7 @@ func (s StockMarketApplicationService) FetchAndSaveStocks() error {
 		panic("Error loading configuration file: %w, err\n")
 	}
 
-	urlString := viper.GetString("HttpRepository.BaseAddress")
 	urlDatabase := viper.GetString("ConnectionStrings.CockroachDB")
-
-	if urlString == "" {
-		panic("connection string não definida no arquivo de configuração")
-	}
 
 	uriPostgres := strings.Replace(urlDatabase, "postgresql://", "cockroachdb://", 1)
 
@@ -66,21 +61,21 @@ func (s StockMarketApplicationService) FetchAndSaveStocks() error {
 	if err != nil {
 		log.Fatalf("Error deleting migration: %v", err)
 	}
-	// Executa todas as migrations (up)
+
 	if err := m.Down(); err != nil && err != migrate.ErrNoChange {
-		log.Fatalf("Erro ao executar migrations: %v", err)
+		log.Fatalf("Error executing migrations: %v", err)
 	}
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatalf("Erro ao executar migrations: %v", err)
+		log.Fatalf("Error executing migrations: %v", err)
 	}
-	log.Println("Migrations executadas com sucesso!")
+	log.Println("Migrations executed successfully!")
 
-	var nextPage = "begin"
+	var nextPage = ""
 	var stockList []*models.StockMarketModel
 	n := 0
 
 	for n < 1 {
-		var body, err = s.HttpRepository.FetchStocks(urlString + nextPage)
+		var body, err = s.truoraStocksHttpRepository.FetchStocks(nextPage)
 
 		if err == nil {
 			var stockMarketResponse response.StockListResponse
@@ -90,7 +85,7 @@ func (s StockMarketApplicationService) FetchAndSaveStocks() error {
 			}
 			errUnmarshal := json.Unmarshal(body, &errorResponse)
 			if errUnmarshal == nil && errorResponse.Message == "Service Unavailable" {
-				log.Println("API returned'Service Unavailable'. repeting request...")
+				log.Println("API returned Service Unavailable'. Repeting request...")
 				time.Sleep(1 * time.Second)
 				continue
 			}
@@ -108,5 +103,5 @@ func (s StockMarketApplicationService) FetchAndSaveStocks() error {
 		}
 	}
 
-	return s.StockMarketRepository.Create(stockList)
+	return s.dbRepository.CreateStocks(stockList)
 }

@@ -95,9 +95,9 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/stockmarkets": {
+        "/stocks": {
             "get": {
-                "description": "Returns a paginated list of stock markets.",
+                "description": "Returns a paginated list of stocks.",
                 "consumes": [
                     "application/json"
                 ],
@@ -105,7 +105,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "StockMarket"
+                    "Stocks"
                 ],
                 "parameters": [
                     {
@@ -131,7 +131,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "default": "2025-03-05T15:04:05Z",
+                        "default": "2025-03-15T15:04:05Z",
                         "description": "Date in format RFC3339",
                         "name": "endDate",
                         "in": "query"
@@ -146,7 +146,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of stock markets",
+                        "description": "List of stocks",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -161,7 +161,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Stock markets not found",
+                        "description": "Stocks not found",
                         "schema": {
                             "$ref": "#/definitions/Errors.ErrorNotFound"
                         }

@@ -1,9 +1,9 @@
-package Repository
+package Http
 
 import (
 	"api-stock-market/src/app/StockMarket.Domain/Models"
-	"api-stock-market/src/app/StockMarket.Infrastructure/Repository/Request"
-	"api-stock-market/src/app/StockMarket.Infrastructure/Repository/Response"
+	"api-stock-market/src/app/StockMarket.Infrastructure/Repository/Http/Request"
+	"api-stock-market/src/app/StockMarket.Infrastructure/Repository/Http/Response"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -11,20 +11,20 @@ import (
 	"strings"
 )
 
-type OpenAIRepository struct {
+type OpenAiHttpRepository struct {
 	apiKey     string
 	model      string
 	httpClient *http.Client
 }
 
-func NewOpenAIRepository(apiKey, model string) *OpenAIRepository {
-	return &OpenAIRepository{
+func NewOpenAiHttpRepository(apiKey, model string) *OpenAiHttpRepository {
+	return &OpenAiHttpRepository{
 		apiKey:     apiKey,
 		model:      model,
 		httpClient: &http.Client{},
 	}
 }
-func (c OpenAIRepository) GetInvestmentRecommendation(content Request.Content) (recommendation Models.InvestmentRecommendation, err error) {
+func (c OpenAiHttpRepository) GetInvestmentRecommendation(content Request.Content) (recommendation Models.InvestmentRecommendation, err error) {
 	prompt := fmt.Sprintf(`Given the following data, 
 should I invest in this stock or not? 
 return the data in the following json format and only the json so i can use it in my vue web app:
@@ -71,7 +71,7 @@ Ticker: %s, Last year moving average: %.2f, PE Ratio: %.2f, PB Ratio: %.2f, Divi
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return recommendation, fmt.Errorf("error making request: %v", err)
+		return recommendation, fmt.Errorf("error doing request: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -86,7 +86,7 @@ Ticker: %s, Last year moving average: %.2f, PE Ratio: %.2f, PB Ratio: %.2f, Divi
 
 	err = json.Unmarshal([]byte(cleanJSONString(response.Choices[0].Message.Content)), &recommendation)
 	if err != nil {
-		fmt.Println("Erro ao converter JSON:", err)
+		fmt.Println("error converting JSON:", err)
 		return recommendation, fmt.Errorf("error decoding recommendation: %v", err)
 	}
 	if len(response.Choices) == 0 {

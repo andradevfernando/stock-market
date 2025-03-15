@@ -3,41 +3,62 @@ package Services
 import (
 	"api-stock-market/src/app/StockMarket.Domain/Models"
 	Interface "api-stock-market/src/app/StockMarket.Infrastructure/Interfaces"
-	"api-stock-market/src/app/StockMarket.Infrastructure/Repository/Request"
-	"api-stock-market/src/app/StockMarket.Infrastructure/Repository/Response"
+	"api-stock-market/src/app/StockMarket.Infrastructure/Repository/Http/Request"
+	"api-stock-market/src/app/StockMarket.Infrastructure/Repository/Http/Response"
 	"fmt"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type StockAnalysisApplicationService struct {
-	ExternalStocksRepository Interface.IExternalStocksRepository
-	OpenAIRepository         Interface.IOpenApiRepository
-	StockMarketRepository    Interface.IStockMarketRepository
+	fmpStocksRepository Interface.IFmpStocksRepository
+	openAIRepository    Interface.IOpenApiHttpRepository
+	dbRepository        Interface.ICockroachDbRepository
 }
 
-func NewStockAnalysisApplicationService(externalStockRepo Interface.IExternalStocksRepository, openAiRepo Interface.IOpenApiRepository, stockRepository Interface.IStockMarketRepository) *StockAnalysisApplicationService {
+func NewStockAnalysisApplicationService(externalStockRepo Interface.IFmpStocksRepository, openAiRepo Interface.IOpenApiHttpRepository, stockRepository Interface.ICockroachDbRepository) *StockAnalysisApplicationService {
 	return &StockAnalysisApplicationService{externalStockRepo, openAiRepo, stockRepository}
 }
 
 func (s *StockAnalysisApplicationService) GetInvestmentRecommendation(ticker string) (Models.InvestmentRecommendation, error) {
-	metrics, err := s.ExternalStocksRepository.GetKeyMetrics(ticker)
-	if err != nil {
-		metrics = Response.MetricsResponse{}
-	}
-	data, err := s.ExternalStocksRepository.GetRealtimeData(ticker)
 
-	if err != nil {
-		data = Response.RealTimeDataResponse{}
-	}
+	var wg sync.WaitGroup
 
-	historicalPrice, err := s.ExternalStocksRepository.GetHistoricalFullPrice(ticker)
+	var metrics Response.MetricsResponse
+	var data Response.RealTimeDataResponse
+	var historicalPrice Response.HistoricalFullPriceResponse
 
-	if err != nil {
-		historicalPrice = Response.HistoricalFullPriceResponse{}
-	}
+	wg.Add(3)
 
+	go func() {
+		defer wg.Done()
+		var err error
+		metrics, err = s.fmpStocksRepository.GetKeyMetrics(ticker)
+		if err != nil {
+			metrics = Response.MetricsResponse{}
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		var err error
+		data, err = s.fmpStocksRepository.GetRealtimeData(ticker)
+		if err != nil {
+			data = Response.RealTimeDataResponse{}
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		var err error
+		historicalPrice, err = s.fmpStocksRepository.GetHistoricalFullPrice(ticker)
+		if err != nil {
+			historicalPrice = Response.HistoricalFullPriceResponse{}
+		}
+	}()
+	wg.Wait()
 	var movingAverage = calculateMovingAverage(historicalPrice)
 
 	var content = Request.Content{
@@ -53,17 +74,17 @@ func (s *StockAnalysisApplicationService) GetInvestmentRecommendation(ticker str
 		Volume:        data.Volume,
 	}
 
-	return s.OpenAIRepository.GetInvestmentRecommendation(content)
+	return s.openAIRepository.GetInvestmentRecommendation(content)
 }
 
 func (s *StockAnalysisApplicationService) GetBestInvestments() ([]*Models.StockMarketModel, error) {
 
-	stocks, err := s.StockMarketRepository.GetList(1, nil, nil, nil, "")
+	stocks, err := s.dbRepository.GetStockList(1, nil, nil, nil, "")
 	if err != nil {
 		return nil, err
 	}
 	if len(stocks) == 0 {
-		return nil, fmt.Errorf("nenhuma ação encontrada")
+		return nil, fmt.Errorf("stocks not found")
 	}
 
 	type Recommendation struct {

@@ -208,11 +208,11 @@ paths:
   /fetchstocks:
     post:
       responses: {}
-  /stockmarkets:
+  /stocks:
     get:
       consumes:
       - application/json
-      description: Returns a paginated list of stock markets.
+      description: Returns a paginated list of stocks.
       parameters:
       - default: 1
         description: Page number
@@ -229,7 +229,7 @@ paths:
         in: query
         name: startDate
         type: string
-      - default: "2025-03-05T15:04:05Z"
+      - default: "2025-03-15T15:04:05Z"
         description: Date in format RFC3339
         in: query
         name: endDate
@@ -243,7 +243,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: List of stock markets
+          description: List of stocks
           schema:
             items:
               $ref: '#/definitions/Payload.StockResponse'
@@ -253,7 +253,7 @@ paths:
           schema:
             $ref: '#/definitions/Errors.ErrorBadRequest'
         "404":
-          description: Stock markets not found
+          description: Stocks not found
           schema:
             $ref: '#/definitions/Errors.ErrorNotFound'
         "500":
@@ -261,5 +261,5 @@ paths:
           schema:
             $ref: '#/definitions/Errors.ErrorInternal'
       tags:
-      - StockMarket
+      - Stocks
 swagger: "2.0"

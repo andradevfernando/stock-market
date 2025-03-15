@@ -2,9 +2,9 @@ package Interface
 
 import (
 	"api-stock-market/src/app/StockMarket.Domain/Models"
-	"api-stock-market/src/app/StockMarket.Infrastructure/Repository/Request"
+	"api-stock-market/src/app/StockMarket.Infrastructure/Repository/Http/Request"
 )
 
-type IOpenApiRepository interface {
+type IOpenApiHttpRepository interface {
 	GetInvestmentRecommendation(content Request.Content) (Models.InvestmentRecommendation, error)
 }

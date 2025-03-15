@@ -1,25 +1,25 @@
-package Repository
+package Http
 
 import (
-	"api-stock-market/src/app/StockMarket.Infrastructure/Repository/Response"
+	"api-stock-market/src/app/StockMarket.Infrastructure/Repository/Http/Response"
 	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
-type ExternalStocksRepository struct {
+type FmpStocksRepository struct {
 	fmpBaseURL string
 	fmpAPIKey  string
 }
 
-func NewExternalStocksRepository(apiKey string) *ExternalStocksRepository {
-	return &ExternalStocksRepository{
+func NewFmpStocksRepository(apiKey string) *FmpStocksRepository {
+	return &FmpStocksRepository{
 		fmpBaseURL: "https://financialmodelingprep.com/api/v3",
 		fmpAPIKey:  apiKey,
 	}
 }
 
-func (e ExternalStocksRepository) GetRealtimeData(ticker string) (realTimeData Response.RealTimeDataResponse, err error) {
+func (e FmpStocksRepository) GetRealtimeData(ticker string) (realTimeData Response.RealTimeDataResponse, err error) {
 	url := fmt.Sprintf("%s/stock/real-time-price/%s?apikey=%s",
 		e.fmpBaseURL, ticker, e.fmpAPIKey)
 
@@ -38,7 +38,7 @@ func (e ExternalStocksRepository) GetRealtimeData(ticker string) (realTimeData R
 
 	return realTimeData, nil
 }
-func (e ExternalStocksRepository) GetKeyMetrics(ticker string) (metrics Response.MetricsResponse, err error) {
+func (e FmpStocksRepository) GetKeyMetrics(ticker string) (metrics Response.MetricsResponse, err error) {
 	url := fmt.Sprintf("%s/key-metrics/%s?apikey=%s",
 		e.fmpBaseURL, ticker, e.fmpAPIKey)
 
@@ -57,7 +57,7 @@ func (e ExternalStocksRepository) GetKeyMetrics(ticker string) (metrics Response
 	return metrics, fmt.Errorf("no data found")
 }
 
-func (e ExternalStocksRepository) GetHistoricalFullPrice(ticker string) (Response.HistoricalFullPriceResponse, error) {
+func (e FmpStocksRepository) GetHistoricalFullPrice(ticker string) (Response.HistoricalFullPriceResponse, error) {
 
 	const period int = 365
 	url := fmt.Sprintf("%s/historical-price-full/%s?timeseries=%d&apikey=%s",

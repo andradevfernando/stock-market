@@ -1,4 +1,4 @@
-package Repository
+package Database
 
 import (
 	"context"
@@ -10,19 +10,19 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type StockRepository struct {
+type CockroachDbRepository struct {
 	pool *pgxpool.Pool
 	ctx  context.Context
 }
 
-func NewStockRepository(ctx context.Context, pool *pgxpool.Pool) *StockRepository {
-	return &StockRepository{
+func NewCockroachDbRepository(ctx context.Context, pool *pgxpool.Pool) *CockroachDbRepository {
+	return &CockroachDbRepository{
 		pool: pool,
 		ctx:  ctx,
 	}
 }
 
-func (r *StockRepository) Create(modelList []*Models.StockMarketModel) error {
+func (r *CockroachDbRepository) CreateStocks(modelList []*Models.StockMarketModel) error {
 	const insertStockQuery = `
         INSERT INTO stock_market (
             ticker, target_from, target_to, company, 
@@ -49,7 +49,7 @@ func (r *StockRepository) Create(modelList []*Models.StockMarketModel) error {
 	}
 	return nil
 }
-func (r *StockRepository) GetList(
+func (r *CockroachDbRepository) GetStockList(
 	page int, limit *int,
 	startDate, endDate *time.Time,
 	companyName string,
@@ -58,7 +58,6 @@ func (r *StockRepository) GetList(
 	var args []interface{}
 	queryBuilder := strings.Builder{}
 
-	// Query base
 	queryBuilder.WriteString(`
         SELECT 
             ticker, target_from, target_to, company, 
@@ -66,36 +65,29 @@ func (r *StockRepository) GetList(
         FROM stock_market
     `)
 
-	// Filtros
 	conditions := []string{}
 
-	// Filtro por data
 	if startDate != nil && endDate != nil {
 		conditions = append(conditions, "time BETWEEN $1 AND $2")
 		args = append(args, *startDate, *endDate)
 	}
 
-	// Filtro por nome da empresa
 	if companyName != "" {
 		conditions = append(conditions, fmt.Sprintf("company ILIKE $%d", len(args)+1))
 		args = append(args, "%"+companyName+"%")
 	}
 
-	// Combinar condições
 	if len(conditions) > 0 {
 		queryBuilder.WriteString("WHERE " + strings.Join(conditions, " AND "))
 	}
 
-	// Ordenação
 	queryBuilder.WriteString("\n ORDER BY time DESC")
 
 	if limit != nil {
-		// Posição dos parâmetros de LIMIT e OFFSET
 		limitOffsetPos := len(args) + 1
 
 		queryBuilder.WriteString(fmt.Sprintf("\n LIMIT $%d OFFSET $%d", limitOffsetPos, limitOffsetPos+1))
 
-		// Calcula o offset e adiciona os valores dos parâmetros
 		offset := *limit * (page - 1)
 		args = append(args, *limit, offset)
 	}
@@ -105,7 +97,7 @@ func (r *StockRepository) GetList(
 
 	rows, err := r.pool.Query(r.ctx, finalQuery, args...)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao executar consulta paginada: %w", err)
+		return nil, fmt.Errorf("error getting paginated result: %w", err)
 	}
 	defer rows.Close()
 
@@ -123,13 +115,13 @@ func (r *StockRepository) GetList(
 			&stock.RatingTo,
 			&stock.Time,
 		); err != nil {
-			return nil, fmt.Errorf("erro ao escanear a linha: %w", err)
+			return nil, fmt.Errorf("erro ao scanning line: %w", err)
 		}
 		stocks = append(stocks, &stock)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("erro durante a iteração das linhas: %w", err)
+		return nil, fmt.Errorf("erro during line iteration: %w", err)
 	}
 	return stocks, nil
 }

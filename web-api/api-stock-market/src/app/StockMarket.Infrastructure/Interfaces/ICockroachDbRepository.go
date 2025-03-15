@@ -5,9 +5,9 @@ import (
 	"time"
 )
 
-type IStockMarketRepository interface {
-	Create(user []*models.StockMarketModel) error
-	GetList(
+type ICockroachDbRepository interface {
+	CreateStocks(user []*models.StockMarketModel) error
+	GetStockList(
 		page int, limit *int,
 		startDate, endDate *time.Time,
 		companyName string,

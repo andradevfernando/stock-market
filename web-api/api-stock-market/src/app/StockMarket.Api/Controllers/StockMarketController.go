@@ -20,22 +20,23 @@ type (
 	}
 )
 
-// GetStockMarkets @Summary List of stock markets
-// @Description Returns a paginated list of stock markets.
-// @Tags StockMarket
+// GetStockMarkets @Summary List of stocks
+// @Description Returns a paginated list of stocks.
+// @Tags Stocks
 // @Accept json
 // @Produce json
 // @Param page query int false "Page number" default(1)
 // @Param items query int false "Items per page" default(10)
 // @Param startDate query string false "Date in format RFC3339" default(2024-03-05T15:04:05Z)
-// @Param endDate query string false "Date in format RFC3339" default(2025-03-05T15:04:05Z)
+// @Param endDate query string false "Date in format RFC3339" default(2025-03-15T15:04:05Z)
 // @Param company query string false "Name of company" default(Apple)
-// @Success 200 {array} Payload.StockResponse "List of stock markets"
+// @Success 200 {array} Payload.StockResponse "List of stocks"
 // @Failure 400 {object} errorResponse.ErrorBadRequest "Bad request"
-// @Failure 404 {object} errorResponse.ErrorNotFound "Stock markets not found"
+// @Failure 404 {object} errorResponse.ErrorNotFound "Stocks not found"
 // @Failure 500 {object} errorResponse.ErrorInternal "Internal Server Error"
-// @Router /stockmarkets [get]
+// @Router /stocks [get]
 func (c *StockMarketController) GetStockMarkets(w http.ResponseWriter, r *http.Request) {
+
 	query := r.URL.Query()
 	pageStr := query.Get("page")
 	items := query.Get("items")
@@ -46,12 +47,10 @@ func (c *StockMarketController) GetStockMarkets(w http.ResponseWriter, r *http.R
 	encoder := json.NewEncoder(w)
 	encoder.SetIndent("", "  ")
 
-	// Validação básica dos parâmetros
 	page := 1
 	limit := 10
 	var err error
 
-	// Parsing da paginação
 	if pageStr != "" {
 		page, err = strconv.Atoi(pageStr)
 		if err != nil || page < 1 {
@@ -86,7 +85,6 @@ func (c *StockMarketController) GetStockMarkets(w http.ResponseWriter, r *http.R
 		}
 	}
 
-	// Parsing das datas
 	var startDate, endDate *time.Time
 	if startDateStr != "" || endDateStr != "" {
 
@@ -200,7 +198,7 @@ func toMidnightUTC(t *time.Time) *time.Time {
 // @Success 200 {object} Payload.StockAnalysisResponse
 // @Failure 400 {object} errorResponse.ErrorBadRequest
 // @Failure 500 {object} errorResponse.ErrorInternal
-// @Router  /analysis/{ticker} [post]
+// @Router /analysis/{ticker} [post]
 func (c *StockMarketController) StockAnalysis(w http.ResponseWriter, r *http.Request) {
 
 	encoder := json.NewEncoder(w)

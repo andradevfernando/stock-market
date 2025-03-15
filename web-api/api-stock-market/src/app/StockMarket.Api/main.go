@@ -4,7 +4,8 @@ import (
 	controllers "api-stock-market/src/app/StockMarket.Api/Controllers"
 	errorMiddleware "api-stock-market/src/app/StockMarket.Api/Middlewares"
 	serviceImpl "api-stock-market/src/app/StockMarket.Application/Services"
-	repositoryInterface "api-stock-market/src/app/StockMarket.Infrastructure/Repository"
+	"api-stock-market/src/app/StockMarket.Infrastructure/Repository/Database"
+	"api-stock-market/src/app/StockMarket.Infrastructure/Repository/Http"
 	"context"
 	"fmt"
 	"log"
@@ -84,11 +85,12 @@ func main() {
 func initHttp(ctx context.Context, pool *pgxpool.Pool) {
 	fmpApiKey := os.Getenv("FMP_API_KEY")
 	openAiApiKey := os.Getenv("OPENAI_API_KEY")
+	truoraApiKey := os.Getenv("TRUORA_API_KEY")
 
-	openApiRepo := repositoryInterface.NewOpenAIRepository(openAiApiKey, "gpt-4o-mini")
-	externalStockRepo := repositoryInterface.NewExternalStocksRepository(fmpApiKey)
-	stockRepo := repositoryInterface.NewStockRepository(ctx, pool)
-	httpRepo := repositoryInterface.NewHttpRepository()
+	openApiRepo := Http.NewOpenAiHttpRepository(openAiApiKey, "gpt-4o-mini")
+	externalStockRepo := Http.NewFmpStocksRepository(fmpApiKey)
+	httpRepo := Http.NewTruoraStocksHttpRepository(truoraApiKey)
+	stockRepo := Database.NewCockroachDbRepository(ctx, pool)
 
 	var service = serviceImpl.NewStockMarketApplicationService(stockRepo, httpRepo)
 	var analysisService = serviceImpl.NewStockAnalysisApplicationService(externalStockRepo, openApiRepo, stockRepo)
@@ -104,7 +106,7 @@ func initHttp(ctx context.Context, pool *pgxpool.Pool) {
 		StockMarketAnalysisService: analysisService,
 	}
 
-	http.HandleFunc("/stockmarkets", controller.GetStockMarkets)
+	http.HandleFunc("/stocks", controller.GetStockMarkets)
 	http.HandleFunc("/fetchstocks", controller.FetchAndSaveStocks)
 	http.HandleFunc("/analysis/", controller.StockAnalysis)
 	http.HandleFunc("/best-investments", controller.GetBestInvestments)
@@ -120,8 +122,7 @@ func initSwagger() {
 	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 }
 func runMigrations(databaseURL string) {
-	//databaseURL = strings.Replace(databaseURL, "postgres://", "cockroachdb://", 1)
-	//cockroachURL := fmt.Sprintf("postgres://%s", strings.Split(databaseURL, "://")[1])
+
 	uriPostgres := strings.Replace(databaseURL, "postgresql://", "cockroachdb://", 1)
 
 	m, err := migrate.New(
