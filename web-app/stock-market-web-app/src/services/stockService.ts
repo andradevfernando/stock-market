@@ -3,7 +3,7 @@ import type { StockData, StockQueryParams } from '../types/stock.types';
 import type { AnalysisData } from '../types/stockAnalysis.types';
 
 export const fetchStockData = async (params: StockQueryParams): Promise<StockData[]> => {
-  const response = await httpClient.get('/stockmarkets', { params });
+  const response = await httpClient.get('/stocks', { params });
   return response.status, response.data;
 };
 export const fetchBestStockData = async (): Promise<StockData[]> => {

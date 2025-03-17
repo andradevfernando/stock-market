@@ -169,7 +169,6 @@ func (c *StockMarketController) FetchAndSaveStocks(w http.ResponseWriter, r *htt
 	err := c.StockMarketService.FetchAndSaveStocks()
 	if err != nil {
 		panic(err.Error())
-		return
 	}
 	w.WriteHeader(http.StatusCreated)
 }

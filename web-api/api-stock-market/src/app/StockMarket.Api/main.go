@@ -18,6 +18,7 @@ import (
 	"github.com/spf13/viper"
 
 	_ "api-stock-market/src/app/StockMarket.Api/docs"
+
 	httpSwagger "github.com/swaggo/http-swagger"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -32,12 +33,12 @@ func loadConfig() (string, error) {
 	viper.AddConfigPath("src/app/StockMarket.Api/")
 
 	if err := viper.ReadInConfig(); err != nil {
-		return "", fmt.Errorf("erro ao carregar arquivo de configuração: %w", err)
+		return "", fmt.Errorf("error loading configuration file: %w", err)
 	}
 
 	connString := viper.GetString("ConnectionStrings.CockroachDB")
 	if connString == "" {
-		return "", fmt.Errorf("connection string não definida no arquivo de configuração")
+		return "", fmt.Errorf("connection string not defined in the configuration file")
 	}
 	return connString, nil
 }
@@ -51,12 +52,12 @@ func main() {
 
 	connString, err := loadConfig()
 	if err != nil {
-		log.Fatalf("Fail loading configurations: %v", err)
+		log.Fatalf("Failed to load configurations: %v", err)
 	}
 
 	config, err := pgxpool.ParseConfig(connString)
 	if err != nil {
-		log.Fatalf("Erro ao parsear string de conexão: %v", err)
+		log.Fatalf("Error parsing connection string: %v", err)
 	}
 	config.MaxConns = 10
 
@@ -65,16 +66,16 @@ func main() {
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
-		log.Fatalf("Erro ao conectar com o banco de dados: %v", err)
+		log.Fatalf("Error connecting to the database: %v", err)
 	}
 
 	if err := pool.Ping(ctx); err != nil {
-		log.Fatalf("Erro ao pingar o banco de dados: %v", err)
+		log.Fatalf("Error pinging the database: %v", err)
 	}
 
 	defer pool.Close()
 
-	fmt.Println("Conectado ao CockroachDB com sucesso!")
+	fmt.Println("Successfully connected to CockroachDB!")
 
 	runMigrations(connString)
 
@@ -111,7 +112,7 @@ func initHttp(ctx context.Context, pool *pgxpool.Pool) {
 	http.HandleFunc("/analysis/", controller.StockAnalysis)
 	http.HandleFunc("/best-investments", controller.GetBestInvestments)
 
-	log.Println("Listening in port 5000...")
+	log.Println("Listening on port 5000...")
 	if err := http.ListenAndServe(":5000", errorMiddleware.RecoveryMiddleware(http.DefaultServeMux)); err != nil {
 		log.Fatalf("Error starting server: %v", err)
 	}
@@ -130,11 +131,11 @@ func runMigrations(databaseURL string) {
 		uriPostgres,
 	)
 	if err != nil {
-		log.Fatalf("Erro ao criar migrations: %v", err)
+		log.Fatalf("Error creating migrations: %v", err)
 	}
-	// Executa todas as migrations (up)
+	// Executes all migrations (up)
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatalf("Erro ao executar migrations: %v", err)
+		log.Fatalf("Error executing migrations: %v", err)
 	}
-	log.Println("Migrations executadas com sucesso!")
+	log.Println("Migrations executed successfully!")
 }

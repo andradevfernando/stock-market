@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"api-stock-market/src/app/StockMarket.Domain/Models"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -115,13 +116,13 @@ func (r *CockroachDbRepository) GetStockList(
 			&stock.RatingTo,
 			&stock.Time,
 		); err != nil {
-			return nil, fmt.Errorf("erro ao scanning line: %w", err)
+			return nil, fmt.Errorf("error scanning line: %w", err)
 		}
 		stocks = append(stocks, &stock)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("erro during line iteration: %w", err)
+		return nil, fmt.Errorf("error during line iteration: %w", err)
 	}
 	return stocks, nil
 }

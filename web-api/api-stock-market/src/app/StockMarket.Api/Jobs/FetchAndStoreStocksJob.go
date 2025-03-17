@@ -31,7 +31,7 @@ func (dj *DailyJob) ScheduleDailyJob() {
 		select {
 		case <-ticker.C:
 			if err := dj.ExecuteDailyJob(); err != nil {
-				log.Printf("Erro ao executar o job diário: %v", err)
+				log.Printf("Error executing job: %v", err)
 			}
 		}
 	}
