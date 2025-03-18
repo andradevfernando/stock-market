@@ -61,7 +61,6 @@ onMounted(async () => {
     startDate: startDate.value.toISOString(),
     endDate: endDate.value.toISOString(),
   }).then(() => {
-    // ensurePageFilled();
   });
 });
 

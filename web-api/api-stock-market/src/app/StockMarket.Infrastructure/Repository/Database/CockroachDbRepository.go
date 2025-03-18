@@ -93,7 +93,6 @@ func (r *CockroachDbRepository) GetStockList(
 		args = append(args, *limit, offset)
 	}
 
-	// Monta a query final
 	finalQuery := queryBuilder.String()
 
 	rows, err := r.pool.Query(r.ctx, finalQuery, args...)

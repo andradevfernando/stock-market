@@ -2,35 +2,29 @@ package Http
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"io"
 	"net/http"
 	"net/url"
 )
 
 type TruoraStocksHttpRepository struct {
-	ApiKey string
+	TruoraBaseUrl string
+	ApiKey        string
 }
 
-func NewTruoraStocksHttpRepository(apiKey string) *TruoraStocksHttpRepository {
+func NewTruoraStocksHttpRepository(apiKey, baseUrl string) *TruoraStocksHttpRepository {
 	return &TruoraStocksHttpRepository{
-		ApiKey: apiKey,
+		TruoraBaseUrl: baseUrl,
+		ApiKey:        apiKey,
 	}
 }
 
 func (h *TruoraStocksHttpRepository) FetchStocks(nextPage string) ([]byte, error) {
-	viper.SetConfigName("appsettings")
-	viper.SetConfigType("json")
-	viper.AddConfigPath("src/app/StockMarket.Api/")
 
-	urlString := viper.GetString("TruoraStocksHttpRepository.BaseAddress")
-	if urlString == "" {
-		panic("Truora http string not found")
-	}
 	params := url.Values{}
 	params.Add("next_page", nextPage)
-	urlString = urlString + "?" + params.Encode()
-	req, err := http.NewRequest("GET", urlString, nil)
+	h.TruoraBaseUrl = h.TruoraBaseUrl + "?" + params.Encode()
+	req, err := http.NewRequest("GET", h.TruoraBaseUrl, nil)
 	if err != nil {
 		return nil, err
 	}

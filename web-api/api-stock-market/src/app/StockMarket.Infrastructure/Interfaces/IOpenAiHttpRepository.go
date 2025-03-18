@@ -5,6 +5,6 @@ import (
 	"api-stock-market/src/app/StockMarket.Infrastructure/Repository/Http/Request"
 )
 
-type IOpenApiHttpRepository interface {
+type IOpenAiHttpRepository interface {
 	GetInvestmentRecommendation(content Request.Content) (Models.InvestmentRecommendation, error)
 }

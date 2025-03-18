@@ -14,11 +14,11 @@ import (
 
 type StockAnalysisApplicationService struct {
 	fmpStocksRepository Interface.IFmpStocksRepository
-	openAIRepository    Interface.IOpenApiHttpRepository
+	openAIRepository    Interface.IOpenAiHttpRepository
 	dbRepository        Interface.ICockroachDbRepository
 }
 
-func NewStockAnalysisApplicationService(externalStockRepo Interface.IFmpStocksRepository, openAiRepo Interface.IOpenApiHttpRepository, stockRepository Interface.ICockroachDbRepository) *StockAnalysisApplicationService {
+func NewStockAnalysisApplicationService(externalStockRepo Interface.IFmpStocksRepository, openAiRepo Interface.IOpenAiHttpRepository, stockRepository Interface.ICockroachDbRepository) *StockAnalysisApplicationService {
 	return &StockAnalysisApplicationService{externalStockRepo, openAiRepo, stockRepository}
 }
 

@@ -12,16 +12,18 @@ import (
 )
 
 type OpenAiHttpRepository struct {
-	apiKey     string
-	model      string
-	httpClient *http.Client
+	apiKey        string
+	openAiBaseUrl string
+	model         string
+	httpClient    *http.Client
 }
 
-func NewOpenAiHttpRepository(apiKey, model string) *OpenAiHttpRepository {
+func NewOpenAiHttpRepository(apiKey, model, baseUrl string) *OpenAiHttpRepository {
 	return &OpenAiHttpRepository{
-		apiKey:     apiKey,
-		model:      model,
-		httpClient: &http.Client{},
+		apiKey:        apiKey,
+		model:         model,
+		openAiBaseUrl: baseUrl,
+		httpClient:    &http.Client{},
 	}
 }
 func (c OpenAiHttpRepository) GetInvestmentRecommendation(content Request.Content) (recommendation Models.InvestmentRecommendation, err error) {
@@ -61,7 +63,7 @@ Ticker: %s, Last year moving average: %.2f, PE Ratio: %.2f, PB Ratio: %.2f, Divi
 		return recommendation, fmt.Errorf("error marshaling request: %v", err)
 	}
 
-	req, err := http.NewRequest("POST", "https://api.openai.com/v1/chat/completions", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest("POST", c.openAiBaseUrl, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return recommendation, fmt.Errorf("error creating request: %v", err)
 	}

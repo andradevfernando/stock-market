@@ -12,9 +12,9 @@ type FmpStocksRepository struct {
 	fmpAPIKey  string
 }
 
-func NewFmpStocksRepository(apiKey string) *FmpStocksRepository {
+func NewFmpStocksRepository(apiKey string, baseUrl string) *FmpStocksRepository {
 	return &FmpStocksRepository{
-		fmpBaseURL: "https://financialmodelingprep.com/api/v3",
+		fmpBaseURL: baseUrl,
 		fmpAPIKey:  apiKey,
 	}
 }

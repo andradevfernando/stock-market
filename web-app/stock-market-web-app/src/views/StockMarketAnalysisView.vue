@@ -84,10 +84,6 @@
                       {{ analysisData.recommendation }}
                     </span>
                   </p>
-                  <!-- <p class="text-gray-700 dark:text-gray-300">
-                    <span class="font-medium">Target Price Range:</span>
-                    <span class="ml-2">${{ analysisData.target_from }} - ${{ analysisData.target_to }}</span>
-                  </p> -->
                 </div>
               </div>
             </div>

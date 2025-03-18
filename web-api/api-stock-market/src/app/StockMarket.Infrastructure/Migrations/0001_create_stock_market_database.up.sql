@@ -12,6 +12,3 @@ CREATE TABLE IF NOT EXISTS stock_market (
 
     INDEX (ticker)
     );
-
--- Para buscas por texto completo
--- CREATE INVERTED INDEX ON stock_market (company, brokerage);

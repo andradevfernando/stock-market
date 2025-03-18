@@ -20,7 +20,7 @@ type (
 	}
 )
 
-// GetStockMarkets @Summary List of stocks
+// GetStock @Summary List of stocks
 // @Description Returns a paginated list of stocks.
 // @Tags Stocks
 // @Accept json
@@ -35,7 +35,7 @@ type (
 // @Failure 404 {object} errorResponse.ErrorNotFound "Stocks not found"
 // @Failure 500 {object} errorResponse.ErrorInternal "Internal Server Error"
 // @Router /stocks [get]
-func (c *StockMarketController) GetStockMarkets(w http.ResponseWriter, r *http.Request) {
+func (c *StockMarketController) GetStock(w http.ResponseWriter, r *http.Request) {
 
 	query := r.URL.Query()
 	pageStr := query.Get("page")
@@ -136,7 +136,7 @@ func (c *StockMarketController) GetStockMarkets(w http.ResponseWriter, r *http.R
 		endDate = &parsedEnd
 	}
 
-	stockMarkets, err := c.StockMarketService.GetStockMarketList(
+	stockMarkets, err := c.StockMarketService.GetStockList(
 		page,
 		&limit,
 		toMidnightUTC(startDate),

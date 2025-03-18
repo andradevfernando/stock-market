@@ -87,14 +87,17 @@ func initHttp(ctx context.Context, pool *pgxpool.Pool) {
 	fmpApiKey := os.Getenv("FMP_API_KEY")
 	openAiApiKey := os.Getenv("OPENAI_API_KEY")
 	truoraApiKey := os.Getenv("TRUORA_API_KEY")
+	openAiBaseUrl := viper.GetString("OpenAiHttpRepository.BaseAddress")
+	fmpApiBaseUrl := viper.GetString("FmpStocksRepository.BaseAddress")
+	truoraApiBaseUrl := viper.GetString("TruoraStocksHttpRepository.BaseAddress")
 
-	openApiRepo := Http.NewOpenAiHttpRepository(openAiApiKey, "gpt-4o-mini")
-	externalStockRepo := Http.NewFmpStocksRepository(fmpApiKey)
-	httpRepo := Http.NewTruoraStocksHttpRepository(truoraApiKey)
+	openApiHttpRepo := Http.NewOpenAiHttpRepository(openAiApiKey, "gpt-4o-mini", openAiBaseUrl)
+	fmpHttpRepo := Http.NewFmpStocksRepository(fmpApiKey, fmpApiBaseUrl)
+	truoraHttpRepo := Http.NewTruoraStocksHttpRepository(truoraApiKey, truoraApiBaseUrl)
 	stockRepo := Database.NewCockroachDbRepository(ctx, pool)
 
-	var service = serviceImpl.NewStockMarketApplicationService(stockRepo, httpRepo)
-	var analysisService = serviceImpl.NewStockAnalysisApplicationService(externalStockRepo, openApiRepo, stockRepo)
+	var service = serviceImpl.NewStockMarketApplicationService(stockRepo, truoraHttpRepo)
+	var analysisService = serviceImpl.NewStockAnalysisApplicationService(fmpHttpRepo, openApiHttpRepo, stockRepo)
 
 	//job := &Jobs.DailyJob{
 	//	Service: service,
@@ -107,7 +110,7 @@ func initHttp(ctx context.Context, pool *pgxpool.Pool) {
 		StockMarketAnalysisService: analysisService,
 	}
 
-	http.HandleFunc("/stocks", controller.GetStockMarkets)
+	http.HandleFunc("/stocks", controller.GetStock)
 	http.HandleFunc("/fetchstocks", controller.FetchAndSaveStocks)
 	http.HandleFunc("/analysis/", controller.StockAnalysis)
 	http.HandleFunc("/best-investments", controller.GetBestInvestments)

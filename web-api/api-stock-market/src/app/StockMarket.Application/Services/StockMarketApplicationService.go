@@ -29,7 +29,7 @@ func NewStockMarketApplicationService(
 	}
 }
 
-func (s StockMarketApplicationService) GetStockMarketList(page int, limit *int,
+func (s StockMarketApplicationService) GetStockList(page int, limit *int,
 	startDate, endDate *time.Time,
 	companyName string) ([]*models.StockMarketModel, error) {
 

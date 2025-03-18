@@ -6,7 +6,7 @@ import (
 )
 
 type IStockMarketApplicationService interface {
-	GetStockMarketList(page int, limit *int,
+	GetStockList(page int, limit *int,
 		startDate, endDate *time.Time,
 		companyName string) ([]*models.StockMarketModel, error)
 	FetchAndSaveStocks() error
